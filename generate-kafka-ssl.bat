@@ -3,7 +3,8 @@ setlocal
 
 :: Set variables
 set PASSWORD=changeit
-set DNAME=CN=localhost, OU=Dev, O=MyCompany, L=City, S=State, C=US
+:: "CN=ods.example.com, OU=IT, O=Excise, L=Bangkok, S=BKK, C=TH"
+set DNAME=CN=localhost, OU=Dev, O=MyCompany, L=City, S=State, C=TH
 
 echo.
 echo [*] Generating Kafka broker keystore...
