@@ -1,69 +1,47 @@
 @echo off
 setlocal
 
-:: Set variables
+:: ===============================
+:: CONFIG
+:: ===============================
 set PASSWORD=changeit
-:: "CN=ods.example.com, OU=IT, O=Excise, L=Bangkok, S=BKK, C=TH"
-set DNAME=CN=localhost, OU=Dev, O=MyCompany, L=City, S=State, C=TH
+set DNAME=CN=ods.example.com, OU=IT, O=MyCompany, L=Bangkok, S=BKK, C=TH
 
-echo.
+:: ===============================
+:: BROKER KEYSTORE
+:: ===============================
 echo [*] Generating Kafka broker keystore...
-keytool -genkey ^
- -alias kafka ^
+keytool -genkeypair -alias kafka ^
  -dname "%DNAME%" ^
- -keystore kafka.broker.keystore.jks ^
  -keyalg RSA ^
+ -keysize 2048 ^
+ -keystore kafka.keystore.jks ^
  -storepass %PASSWORD% ^
  -keypass %PASSWORD% ^
  -validity 365
 
-echo.
-echo [*] Exporting Kafka broker certificate...
-keytool -export ^
- -alias kafka ^
+echo [*] Exporting broker certificate...
+keytool -export -alias kafka ^
+ -keystore kafka.keystore.jks ^
  -file kafka.broker.cert ^
- -keystore kafka.broker.keystore.jks ^
+ -storepass %PASSWORD% ^
+ -rfc
+
+:: ===============================
+:: CLIENT TRUSTSTORE
+:: ===============================
+echo [*] Creating client truststore and importing broker cert...
+keytool -import -noprompt -alias kafka ^
+ -file kafka.broker.cert ^
+ -keystore kafka.truststore.jks ^
  -storepass %PASSWORD%
 
 echo.
-echo [*] Creating Kafka client truststore and importing broker certificate...
-keytool -import ^
- -alias kafka ^
- -file kafka.broker.cert ^
- -keystore kafka.client.truststore.jks ^
- -storepass %PASSWORD% ^
- -noprompt
-
+echo [✔] Done! Files created:
+echo     kafka.keystore.jks
+echo     kafka.truststore.jks
+echo     kafka.broker.cert
 echo.
-echo [*] Generating Kafka client keystore...
-keytool -genkey ^
- -alias client ^
- -dname "%DNAME%" ^
- -keystore kafka.client.keystore.jks ^
- -keyalg RSA ^
- -storepass %PASSWORD% ^
- -keypass %PASSWORD% ^
- -validity 365
 
-echo.
-echo [*] Exporting Kafka client certificate...
-keytool -export ^
- -alias client ^
- -file kafka.client.cert ^
- -keystore kafka.client.keystore.jks ^
- -storepass %PASSWORD%
-
-echo.
-echo [*] Creating Kafka broker truststore and importing client certificate...
-keytool -import ^
- -alias client ^
- -file kafka.client.cert ^
- -keystore kafka.broker.truststore.jks ^
- -storepass %PASSWORD% ^
- -noprompt
-
-echo.
-echo [✔] All SSL keystore and truststore files have been generated successfully.
-
-endlocal
 pause
+endlocal
